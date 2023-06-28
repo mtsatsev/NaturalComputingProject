@@ -50,6 +50,9 @@ class Boid {
         // Food rules
         this.rw_near_food = rule_weights[12]
 
+        // Density
+        this.density = 0
+
     }
 
     // Boid_distances = [#Boid x #Boid] matrix
@@ -99,6 +102,8 @@ class Boid {
         // Food rules
         acc_hat = this.food(acc_hat)
 
+        // Density update
+        this.density += neighbour_distances.length / max_T
 
         // Update Velocity
         acc_hat.limit(this.max_acc)

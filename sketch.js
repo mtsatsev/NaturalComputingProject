@@ -58,7 +58,7 @@ function seed_boids(N, boid_array, mode = 'random') {
     for (let i = 0; i < N; i++) {
       let x = random(0, CanvasWidth)
       let y = random(0, CanvasHeight)
-      Boids.push(new Boid(i, x, y, generate_rule_weights(15)))
+      Boids.push(new Boid(i, x, y, generate_rule_weights(13)))
     }
   }
 }
