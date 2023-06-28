@@ -1,0 +1,17 @@
+names = [
+    "rw_mean_pos",
+    "rw_near_pos",
+    "rw_far_pos",
+    "rw_mean_vel",
+    "rw_near_vel",
+    "rw_far_vel",
+    "rw_mean_all",
+    "rw_near_all",
+    "rw_far_all",
+    "rw_mean_sep",
+    "rw_near_sep",
+    "rw_far_sep",
+    "rw_near_food",
+    "bruh",
+    "bruh2",
+]  # [str(i) for i in range(15)]
