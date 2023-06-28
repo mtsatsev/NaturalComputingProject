@@ -1,57 +1,94 @@
 class EvolutionaryAlgorithm {
-    constructor(Boids, Foods, mu, n_rules = 15, p_c = 1.0) {
-        this.N_boids = Boids.length;
+    constructor(Boids, Foods, mu, nRules = 15, pc = 1.0) {
+        this.NBoids = Boids.length;
         this.mu = mu;
-        this.p_c = p_c;
+        this.pc = pc;
         this.Boids = Boids;
         this.Foods = Foods;
-        this.n_rules = n_rules;
+        this.nRules = nRules;
     }
 
-    fitness(Boid) { }
+    fitness(boid) {
+        // TODO: DOES NOT WORK. NO FUNCITONALITY TO SEE HOW MUCH FOOD WE GOT.
+        const collectedFood = boid.consumed_food;
+        return collectedFood
+    }
 
-    mutate(boid) {
-        const mu_prob = [];
-        for (let i = 0; i < this.n_rules; i++) {
+    mutate(boid, id) {
+        const muProb = [];
+        for (let i = 0; i < this.nRules; i++) {
             const prob = Math.random();
-            mu_prob.push(prob);
+            muProb.push(prob);
         }
-        delta_weights = this.generateGaussianDistribution(this.n_rules).map((weight, i) => {
-            if (mu_prob[i] < this.mu) {
-                return weight;
-            } else {
-                return 0.0;
-            }
-        });
-
-        const weights = [];
-        for (const attr_name in boid) {
-            if (attr_name.startsWith("wr")) {
-                const attribute = Boid[attr_name];
-                weights.push(attribute);
+        var deltaWeights = this.generateGaussianDistribution(
+            this.nRules, 0, 1
+        );
+        for (let i = 0; i < deltaWeights.lenght; i++) {
+            if (muProb[i] > this.mu) {
+                deltaWeights[i] = 0.0;
             }
         }
+        var weights = boid.rw;
 
-        const updatedWeights = weights.map((weight, idx) => weight + delta_weights[idx]);
+        const updatedWeights = weights.map((weight, idx) => weight + deltaWeights[idx])
+        var x = floor(random(0, 800));
+        var y = floor(random(0, 800));
 
-        Object.keys(boid).forEach((attr_name, idx) => {
-            if (attr_name.startsWith("wr")) {
-                boid[attr_name] = updatedWeights[idx];
+        return new Boid(id, x, y, updatedWeights);
+        /*
+
+        Object.keys(boid).forEach((attrName, idx) => {
+            if (attrName.startsWith("wr")) {
+                boid[attrName] = updatedWeights[idx];
             }
-        });
+        });*/
     }
 
-    generate_population() { };
+    select_parent(K = 10) {
+        const parents = [];
+        var bestFitness = -1;
+        var bestIdx = -1;
+        for (let i = 0; i < K; i++) {
+            const parent_candidate = this.Boids[Math.floor(Math.random(0, this.NBoids))];
+            parents.push(parent_candidate);
+            var parentFitness = this.fitness(parent_candidate);
+            if (bestFitness < parentFitness) {
+                bestFitness = parentFitness;
+                bestIdx = i;
+            }
+        }
+        const choice = parents[bestIdx];
+        return choice;
+    }
 
-    select_parent(Boid) { };
+    writeResults(G) {
+        const weights = this.Boids.reduce((dict, boid) => {
+            dict["BOID: " + boid.id.toString()] = [boid.rw, this.fitness(boid)];
+            return dict;
+        }, {});
 
+        saveJSON(weights, "result/"+G.toString()+'results.json');
+    }
+
+    Evolution(K) {
+        const newGeneration = [];
+
+        var i = 0;
+        for (let i = 0; i < this.NBoids; i++) {
+            var parent = this.select_parent(K)
+            var offspring = this.mutate(parent, i)
+            newGeneration.push(offspring)
+        }
+        return newGeneration;
+    }
 
     generateGaussianDistribution(N, mean, standardDeviation) {
         const numbers = [];
 
         for (let i = 0; i < N; i++) {
-            const number = randomGaussian() * standardDeviation + mean;
+            const number = randomGaussian(mean, standardDeviation);
             numbers.push(number);
         }
+        return numbers
     }
 }
