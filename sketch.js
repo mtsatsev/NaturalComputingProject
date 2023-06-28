@@ -1,5 +1,16 @@
-const CanvasWidth = 400;
-const CanvasHeight = 400;
+const CanvasWidth = 800;
+const CanvasHeight = 800;
+
+const max_T = 2000
+const max_G = 20
+var T = 0
+var G = 0
+const N_boids = 30 // Number of boids
+const N_foods = 20 // Number of foods
+const FoodCoolDown = 10;
+
+var Boids = []
+var Foods = []
 
 
 // Generate (uniformly distributed) random rule weights in the range (-1, 1)
@@ -47,20 +58,7 @@ function seed_boids(N, boid_array, mode = 'random') {
     for (let i = 0; i < N; i++) {
       let x = random(0, CanvasWidth)
       let y = random(0, CanvasHeight)
-
-      let max_vel = 2 //randomGaussian(2, 1)
-      let max_acc = 0.4 //randomGaussian(1, 1)
-
-      let max_neighbours = 3// round(randomGaussian(5, 1))
-
-      let max_food = round(randomGaussian(5, 1))
-
-      // let max_vision = round(randomGaussian(50, 10))
-
-      // Generate a new boid
-      //id, pos_x, pos_y, max_vel, max_acc, max_neighbours, max_food, rule_weights
-
-      Boids.push(new Boid(i, x, y, max_vel, max_acc, max_neighbours, max_food, generate_rule_weights(15)))
+      Boids.push(new Boid(i, x, y, generate_rule_weights(15)))
     }
   }
 }
@@ -70,47 +68,51 @@ function seed_food(N, food_array) {
     let x = random(0, CanvasWidth)
     let y = random(0, CanvasHeight)
 
-    let weight = round(randomGaussian(5, 4))
+    let weight = round(8)
 
     var food = new Food(x, y, weight)
     food_array.push(food)
   }
 }
 
-
-
-
-const max_T = 500
-var T = 0
-const N_boids = 100 // Number of boids
-const N_foods = 10
-const Boids = []
-const Foods = []
-
-
 function setup() {
   seed_boids(N_boids, Boids) // Fill the Boid array
   seed_food(N_foods, Foods)
-  createCanvas(400, 400);
+  createCanvas(CanvasWidth, CanvasHeight);
 }
 
 function draw() {
-  if (T < max_T) {
-    background(220);
-    var distance_mat = calc_boid_distances(Boids)
+  
+  if (G < max_G) {
+    console.log(G)
+    if (T < max_T) {
+      background(220);
+      var distance_mat = calc_boid_distances(Boids)
 
-    for (let b of Boids) {
-      b.move(distance_mat)
-      strokeWeight(8);
-      stroke(255);
-      point(b.pos.x, b.pos.y);
+      for (let b of Boids) {
+        b.move(distance_mat)
+        strokeWeight(8);
+        stroke(255);
+        point(b.pos.x, b.pos.y);
+      }
+      let s = 0
+      T += 1
+
+      for (let f of Foods) {
+        f.drawFood()
+      }
+      //console.log(s)
+      T++;
+    } else {
+      var EA = new EvolutionaryAlgorithm(Boids, Foods, 0.01);
+      EA.writeResults(G);
+      Boids = EA.Evolution(10);
+      Foods = []
+      seed_food(N_foods, Foods)
+      G += 1
+      T = 0
     }
-    let s = 0
-    for (let f of Foods) {
-      f.draw()
-      s += f.weight
-    }
-    //console.log(s)
+  } else {
+    console.log('THATS ALL FOLK');
   }
-  T += 1
 }

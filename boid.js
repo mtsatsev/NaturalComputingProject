@@ -1,5 +1,5 @@
 class Boid {
-    constructor(id, pos_x, pos_y, max_vel, max_acc, max_neighbours, max_food, rule_weights) {
+    constructor(id, pos_x, pos_y, rule_weights) {
         // Boid ID, for keeping track of this boid's position in the distance matrix
         this.id = id
 
@@ -10,22 +10,22 @@ class Boid {
         // Acceleration
         this.acc = createVector(0, 0)
 
-        // Set maximum velocity and acceleration
-        this.max_vel = max_vel
-        this.max_acc = max_acc
+        // Set maximum velocity and acceleration (Same as in previous assignment)
+        this.max_vel = 2
+        this.max_acc = 0.1
 
         // Set vision range
         this.vision_range = 50
 
         // Keep track of neighbours (within vision)
-        this.max_neighbours = max_neighbours
+        this.max_neighbours = 5
         this.neighbours = [] // Neigbour positions and velocities
 
-        // Keep track of food (within vision)
-        this.max_food = max_food
-        this.foods = [] // Food positions
+        // Food consumption
+        this.cd = 0
+        this.consumed_food = 0
 
-
+        this.rw = rule_weights
         // Set movement rule strengths (rw = rule weight)
         // Positional rules
         this.rw_mean_pos = rule_weights[0]
@@ -48,9 +48,8 @@ class Boid {
         this.rw_far_sep = rule_weights[11]
 
         // Food rules
-        this.rw_mean_food = rule_weights[12]
-        this.rw_near_food = rule_weights[13]
-        this.rw_far_food = rule_weights[14]
+        this.rw_near_food = rule_weights[12]
+
     }
 
     // Boid_distances = [#Boid x #Boid] matrix
@@ -69,7 +68,6 @@ class Boid {
                 return neighbour_distances.slice(0, i)
             }
         }
-
         return neighbour_distances // Array[Tuple(float, vector, Boid)]
 
     }
@@ -84,6 +82,7 @@ class Boid {
         // Go over all movement rules
 
         if (neighbour_distances.length > 0) {
+
             // Positional rules
             acc_hat = this.positional(acc_hat, neighbour_distances)
 
@@ -98,7 +97,8 @@ class Boid {
             acc_hat = this.seperation(acc_hat, neighbour_distances)
         }
         // Food rules
-        acc_hat = this.food(acc_hat, neighbour_distances) // Not implemented
+        acc_hat = this.food(acc_hat)
+
 
         // Update Velocity
         acc_hat.limit(this.max_acc)
@@ -222,12 +222,41 @@ class Boid {
 
         return acc_hat
 
-
-        // return acc_hat
     }
 
-    food(acc_hat, neighbour_distances) {
-        // TODO
+    food(acc_hat) {
+        var food_distances = []
+
+        // Calculate distances
+        for (let food of Foods) {
+            if (food.weight > 0) {
+                let vector = p5.Vector.sub(this.pos, food.pos)
+                let distance = vector.mag()
+                food_distances.push([distance, vector, food])
+            }
+        }
+
+        // sort to get closest
+        food_distances.sort(function (a, b) { return a[0] - b[0] })
+
+        // Go to closest (if inside of vision)
+        if (food_distances[0][0] <= this.vision_range) {
+            var near_food = createVector()
+            near_food.add(food_distances[0][1])
+            acc_hat.add(near_food.mult(-this.rw_near_food))
+        }
+
+        // Food eating if available
+        if (this.cd > 0) {
+            this.cd--
+        }
+
+        if (this.cd == 0 && food_distances[0][0] <= 5) {
+            this.cd = FoodCoolDown;
+            this.consumed_food++;
+            food_distances[0][2].weight--;
+        }
+
         return acc_hat
     }
 }
