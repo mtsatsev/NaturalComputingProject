@@ -101,7 +101,6 @@ function draw() {
       for (let f of Foods) {
         f.drawFood()
       }
-      //console.log(s)
       T++;
     } else {
       var EA = new EvolutionaryAlgorithm(Boids, Foods, 0.01);
