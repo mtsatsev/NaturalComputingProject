@@ -11,7 +11,7 @@ The code and pdf of our project for Natural Computing At Radboud University
 4. Open the notebook called `Data_analysis.ipynb`. Only change these lines:
 
 ```python
-results = read_and_average('experiments/Food40Cooldown',names,30,15)
+results = read_and_average('experiments/NameOfMyFolder',names,30,15)
 visualize(results, 'results')
 ```
 
